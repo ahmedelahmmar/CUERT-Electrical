@@ -55,8 +55,10 @@
 
 /* External variables --------------------------------------------------------*/
 extern DMA_HandleTypeDef hdma_adc1;
+extern DMA_HandleTypeDef hdma_tim2_ch1;
+extern DMA_HandleTypeDef hdma_tim3_ch1_trig;
+extern DMA_HandleTypeDef hdma_tim4_ch2;
 extern TIM_HandleTypeDef htim1;
-extern TIM_HandleTypeDef htim3;
 /* USER CODE BEGIN EV */
 
 extern __IO union
@@ -244,6 +246,48 @@ void DMA1_Channel1_IRQHandler(void)
 }
 
 /**
+  * @brief This function handles DMA1 channel4 global interrupt.
+  */
+void DMA1_Channel4_IRQHandler(void)
+{
+  /* USER CODE BEGIN DMA1_Channel4_IRQn 0 */
+
+  /* USER CODE END DMA1_Channel4_IRQn 0 */
+  HAL_DMA_IRQHandler(&hdma_tim4_ch2);
+  /* USER CODE BEGIN DMA1_Channel4_IRQn 1 */
+
+  /* USER CODE END DMA1_Channel4_IRQn 1 */
+}
+
+/**
+  * @brief This function handles DMA1 channel5 global interrupt.
+  */
+void DMA1_Channel5_IRQHandler(void)
+{
+  /* USER CODE BEGIN DMA1_Channel5_IRQn 0 */
+
+  /* USER CODE END DMA1_Channel5_IRQn 0 */
+  HAL_DMA_IRQHandler(&hdma_tim2_ch1);
+  /* USER CODE BEGIN DMA1_Channel5_IRQn 1 */
+
+  /* USER CODE END DMA1_Channel5_IRQn 1 */
+}
+
+/**
+  * @brief This function handles DMA1 channel6 global interrupt.
+  */
+void DMA1_Channel6_IRQHandler(void)
+{
+  /* USER CODE BEGIN DMA1_Channel6_IRQn 0 */
+
+  /* USER CODE END DMA1_Channel6_IRQn 0 */
+  HAL_DMA_IRQHandler(&hdma_tim3_ch1_trig);
+  /* USER CODE BEGIN DMA1_Channel6_IRQn 1 */
+
+  /* USER CODE END DMA1_Channel6_IRQn 1 */
+}
+
+/**
   * @brief This function handles TIM1 update interrupt.
   */
 void TIM1_UP_IRQHandler(void)
@@ -255,20 +299,6 @@ void TIM1_UP_IRQHandler(void)
   /* USER CODE BEGIN TIM1_UP_IRQn 1 */
 
   /* USER CODE END TIM1_UP_IRQn 1 */
-}
-
-/**
-  * @brief This function handles TIM3 global interrupt.
-  */
-void TIM3_IRQHandler(void)
-{
-  /* USER CODE BEGIN TIM3_IRQn 0 */
-
-  /* USER CODE END TIM3_IRQn 0 */
-  HAL_TIM_IRQHandler(&htim3);
-  /* USER CODE BEGIN TIM3_IRQn 1 */
-
-  /* USER CODE END TIM3_IRQn 1 */
 }
 
 /* USER CODE BEGIN 1 */
@@ -301,15 +331,15 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 {
 	if ( &htim1 == htim )
 	{
-//		static const uint8_t CommutationSequence[] = {0b110, 0b100, 0b101, 0b001, 0b011, 0b010};
-//
-//		static uint8_t HallCurrentState = 0;
-//		HallSensors.Sector = CommutationSequence[HallCurrentState];
-//
-//		if ( ++HallCurrentState > 5 )
-//		{
-//			HallCurrentState = 0;
-//		}
+		static const uint8_t CommutationSequence[] = {0b110, 0b100, 0b101, 0b001, 0b011, 0b010};
+
+		static uint8_t HallCurrentState = 0;
+		HallSensors.Sector = CommutationSequence[HallCurrentState];
+
+		if ( ++HallCurrentState > 5 )
+		{
+			HallCurrentState = 0;
+		}
 
 		S180_UpdateCommutation();
 	}

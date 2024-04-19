@@ -82,6 +82,18 @@ __IO uint32_t newPrescaler = 0;
 __IO uint32_t MotorRPS = 0;
 __IO uint8_t CurrentDutyCycle = 50;
 
+
+PWM_ConfigTypeDef xPWMConfigStruct = {
+		.ppxPhaseTimerHandles[PWM_Phase_U] = mHU_TIMER_HANDLE,
+		.pulPhaseTimerChannels[PWM_Phase_U] = mHU_TIMER_CHANNEL,
+
+		.ppxPhaseTimerHandles[PWM_Phase_V] = mHV_TIMER_HANDLE,
+		.pulPhaseTimerChannels[PWM_Phase_V] = mHV_TIMER_CHANNEL,
+
+		.ppxPhaseTimerHandles[PWM_Phase_W] = mHW_TIMER_HANDLE,
+		.pulPhaseTimerChannels[PWM_Phase_W] = mHW_TIMER_CHANNEL,
+};
+
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -126,16 +138,15 @@ int main(void)
   MX_DMA_Init();
   MX_ADC1_Init();
   MX_TIM1_Init();
+  MX_TIM2_Init();
   MX_TIM3_Init();
+  MX_TIM4_Init();
   /* USER CODE BEGIN 2 */
 
-  HAL_ADC_Start_DMA(&hadc1, (uint32_t *)AdcConversions, 2);
+
+//  HAL_ADC_Start_DMA(&hadc1, (uint32_t *)AdcConversions, 2);
 
   HAL_TIM_Base_Start_IT(&htim1);
-  HAL_TIM_PWM_Start(mHU_TIMER_HANDLE, mHU_TIMER_CHANNEL);
-  HAL_TIM_PWM_Start(mHV_TIMER_HANDLE, mHV_TIMER_CHANNEL);
-  HAL_TIM_PWM_Start(mHW_TIMER_HANDLE, mHW_TIMER_CHANNEL);
-
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -146,15 +157,16 @@ int main(void)
 
     /* USER CODE BEGIN 3 */
 
-	  HallSensors.Instance.HallU = HAL_GPIO_ReadPin(mHALLU_GPIO_Port, mHALLU_Pin);
-	  HallSensors.Instance.HallV = HAL_GPIO_ReadPin(mHALLV_GPIO_Port, mHALLV_Pin);
-	  HallSensors.Instance.HallW = HAL_GPIO_ReadPin(mHALLW_GPIO_Port, mHALLW_Pin);
+
+//	  HallSensors.Instance.HallU = HAL_GPIO_ReadPin(mHALLU_GPIO_Port, mHALLU_Pin);
+//	  HallSensors.Instance.HallV = HAL_GPIO_ReadPin(mHALLV_GPIO_Port, mHALLV_Pin);
+//	  HallSensors.Instance.HallW = HAL_GPIO_ReadPin(mHALLW_GPIO_Port, mHALLW_Pin);
 
 
-	  newPrescaler = (uint32_t)((float)((-0.5841f * AdcConversions[mSPEED_POT_INDEX] + 2400.0f ) - 1));
-	  __HAL_TIM_SET_PRESCALER(&htim1, newPrescaler);
-
-	  CurrentDutyCycle = (uint8_t)(0.02442 * AdcConversions[mDUTY_POT_INDEX]);
+//	  newPrescaler = (uint32_t)((float)((-0.5841f * AdcConversions[mSPEED_POT_INDEX] + 2400.0f ) - 1));
+//	  __HAL_TIM_SET_PRESCALER(&htim1, newPrescaler);
+//
+//	  CurrentDutyCycle = (uint8_t)(0.02442 * AdcConversions[mDUTY_POT_INDEX]);
 
   }
   /* USER CODE END 3 */
@@ -213,56 +225,61 @@ void S180_UpdateCommutation(void)
 	{
 		case (SECTOR_1):
 
-			SetDutyCycle(mHU_TIMER_HANDLE, mHU_TIMER_CHANNEL, CurrentDutyCycle);
-			SetDutyCycle(mHV_TIMER_HANDLE, mHV_TIMER_CHANNEL, 0);
-			SetDutyCycle(mHW_TIMER_HANDLE, mHW_TIMER_CHANNEL, CurrentDutyCycle);
+			PWM_vStartSPWM(&xPWMConfigStruct, PWM_Phase_U);
+
+//			SetDutyCycle(mHU_TIMER_HANDLE, mHU_TIMER_CHANNEL, CurrentDutyCycle);
+//			SetDutyCycle(mHV_TIMER_HANDLE, mHV_TIMER_CHANNEL, 0);
+//			SetDutyCycle(mHW_TIMER_HANDLE, mHW_TIMER_CHANNEL, CurrentDutyCycle);
 
 			break;
 
 
-		case (SECTOR_2):
-
-			SetDutyCycle(mHU_TIMER_HANDLE, mHU_TIMER_CHANNEL, CurrentDutyCycle);
-			SetDutyCycle(mHV_TIMER_HANDLE, mHV_TIMER_CHANNEL, 0);
-			SetDutyCycle(mHW_TIMER_HANDLE, mHW_TIMER_CHANNEL, 0);
-
-			break;
-
-
+//		case (SECTOR_2):
+//
+//			SetDutyCycle(mHU_TIMER_HANDLE, mHU_TIMER_CHANNEL, CurrentDutyCycle);
+//			SetDutyCycle(mHV_TIMER_HANDLE, mHV_TIMER_CHANNEL, 0);
+//			SetDutyCycle(mHW_TIMER_HANDLE, mHW_TIMER_CHANNEL, 0);
+//
+//			break;
+//
+//
 		case (SECTOR_3):
 
-			SetDutyCycle(mHU_TIMER_HANDLE, mHU_TIMER_CHANNEL, CurrentDutyCycle);
-			SetDutyCycle(mHV_TIMER_HANDLE, mHV_TIMER_CHANNEL, CurrentDutyCycle);
-			SetDutyCycle(mHW_TIMER_HANDLE, mHW_TIMER_CHANNEL, 0);
-
+			PWM_vStartSPWM(&xPWMConfigStruct, PWM_Phase_V);
+//
+//			SetDutyCycle(mHU_TIMER_HANDLE, mHU_TIMER_CHANNEL, CurrentDutyCycle);
+//			SetDutyCycle(mHV_TIMER_HANDLE, mHV_TIMER_CHANNEL, CurrentDutyCycle);
+//			SetDutyCycle(mHW_TIMER_HANDLE, mHW_TIMER_CHANNEL, 0);
+//
 			break;
-
-
-		case (SECTOR_4):
-
-			SetDutyCycle(mHU_TIMER_HANDLE, mHU_TIMER_CHANNEL, 0);
-			SetDutyCycle(mHV_TIMER_HANDLE, mHV_TIMER_CHANNEL, CurrentDutyCycle);
-			SetDutyCycle(mHW_TIMER_HANDLE, mHW_TIMER_CHANNEL, 0);
-
-			break;
-
-
+//
+//
+//		case (SECTOR_4):
+//
+//			SetDutyCycle(mHU_TIMER_HANDLE, mHU_TIMER_CHANNEL, 0);
+//			SetDutyCycle(mHV_TIMER_HANDLE, mHV_TIMER_CHANNEL, CurrentDutyCycle);
+//			SetDutyCycle(mHW_TIMER_HANDLE, mHW_TIMER_CHANNEL, 0);
+//
+//			break;
+//
+//
 		case (SECTOR_5):
-
-			SetDutyCycle(mHU_TIMER_HANDLE, mHU_TIMER_CHANNEL, 0);
-			SetDutyCycle(mHV_TIMER_HANDLE, mHV_TIMER_CHANNEL, CurrentDutyCycle);
-			SetDutyCycle(mHW_TIMER_HANDLE, mHW_TIMER_CHANNEL, CurrentDutyCycle);
-
+			PWM_vStartSPWM(&xPWMConfigStruct, PWM_Phase_W);
+//
+//			SetDutyCycle(mHU_TIMER_HANDLE, mHU_TIMER_CHANNEL, 0);
+//			SetDutyCycle(mHV_TIMER_HANDLE, mHV_TIMER_CHANNEL, CurrentDutyCycle);
+//			SetDutyCycle(mHW_TIMER_HANDLE, mHW_TIMER_CHANNEL, CurrentDutyCycle);
+//
 			break;
-
-
-		case (SECTOR_6):
-
-			SetDutyCycle(mHU_TIMER_HANDLE, mHU_TIMER_CHANNEL, 0);
-			SetDutyCycle(mHV_TIMER_HANDLE, mHV_TIMER_CHANNEL, 0);
-			SetDutyCycle(mHW_TIMER_HANDLE, mHW_TIMER_CHANNEL, CurrentDutyCycle);
-
-			break;
+//
+//
+//		case (SECTOR_6):
+//
+//			SetDutyCycle(mHU_TIMER_HANDLE, mHU_TIMER_CHANNEL, 0);
+//			SetDutyCycle(mHV_TIMER_HANDLE, mHV_TIMER_CHANNEL, 0);
+//			SetDutyCycle(mHW_TIMER_HANDLE, mHW_TIMER_CHANNEL, CurrentDutyCycle);
+//
+//			break;
 
 
 		default: break;
@@ -270,16 +287,16 @@ void S180_UpdateCommutation(void)
 }
 
 
-void SetDutyCycle(TIM_HandleTypeDef *htim, uint32_t pwmChannel, uint8_t DutyCyclePercentage)
-{
-	if ( (0 <= DutyCyclePercentage) && (DutyCyclePercentage <= 100) )
-	{
-		uint32_t pwmMaxCounterValue = __HAL_TIM_GET_AUTORELOAD(htim);
-		uint32_t pwmNewCounterValue = (uint32_t)( ((float)DutyCyclePercentage / 100.0f) * (float)pwmMaxCounterValue );
-
-		__HAL_TIM_SET_COMPARE(htim, pwmChannel, pwmNewCounterValue);
-	}
-}
+//void SetDutyCycle(TIM_HandleTypeDef *htim, uint32_t pwmChannel, uint8_t DutyCyclePercentage)
+//{
+//	if ( (0 <= DutyCyclePercentage) && (DutyCyclePercentage <= 100) )
+//	{
+//		uint32_t pwmMaxCounterValue = __HAL_TIM_GET_AUTORELOAD(htim);
+//		uint32_t pwmNewCounterValue = (uint32_t)( ((float)DutyCyclePercentage / 100.0f) * (float)pwmMaxCounterValue );
+//
+//		__HAL_TIM_SET_COMPARE(htim, pwmChannel, pwmNewCounterValue);
+//	}
+//}
 /* USER CODE END 4 */
 
 /**

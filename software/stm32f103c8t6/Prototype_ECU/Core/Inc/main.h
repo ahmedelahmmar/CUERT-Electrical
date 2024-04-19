@@ -31,7 +31,8 @@ extern "C" {
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-
+#include "../../Drivers/BLDCM/PWM/PWM.h"
+#include "../../Drivers/BLDCM/Hall/Hall.h"
 /* USER CODE END Includes */
 
 /* Exported types ------------------------------------------------------------*/
@@ -62,20 +63,8 @@ void SetDutyCycle(TIM_HandleTypeDef *htim, uint32_t pwmChannel, uint8_t DutyCycl
 #define BUILTIN_LED_GPIO_Port GPIOC
 #define mDUTY_POT_Pin GPIO_PIN_0
 #define mDUTY_POT_GPIO_Port GPIOA
-#define mHU_Pin GPIO_PIN_6
-#define mHU_GPIO_Port GPIOA
-#define mHV_Pin GPIO_PIN_7
-#define mHV_GPIO_Port GPIOA
-#define mHW_Pin GPIO_PIN_0
-#define mHW_GPIO_Port GPIOB
 #define mSPEED_POT_Pin GPIO_PIN_1
 #define mSPEED_POT_GPIO_Port GPIOB
-#define mHALLU_Pin GPIO_PIN_10
-#define mHALLU_GPIO_Port GPIOA
-#define mHALLV_Pin GPIO_PIN_11
-#define mHALLV_GPIO_Port GPIOA
-#define mHALLW_Pin GPIO_PIN_12
-#define mHALLW_GPIO_Port GPIOA
 
 /* USER CODE BEGIN Private defines */
 
@@ -89,13 +78,13 @@ void SetDutyCycle(TIM_HandleTypeDef *htim, uint32_t pwmChannel, uint8_t DutyCycl
 #define SECTOR_5				0b011
 #define SECTOR_6				0b010
 
-#define mHU_TIMER_HANDLE	&htim3
+#define mHU_TIMER_HANDLE	&htim2
 #define mHV_TIMER_HANDLE	&htim3
-#define mHW_TIMER_HANDLE	&htim3
+#define mHW_TIMER_HANDLE	&htim4
 
 #define mHU_TIMER_CHANNEL	TIM_CHANNEL_1
-#define mHV_TIMER_CHANNEL	TIM_CHANNEL_2
-#define mHW_TIMER_CHANNEL	TIM_CHANNEL_3
+#define mHV_TIMER_CHANNEL	TIM_CHANNEL_1
+#define mHW_TIMER_CHANNEL	TIM_CHANNEL_2
 
 #define MOTOR_POLE_PAIRS	5
 #define MOTOR_STOPPED		0
