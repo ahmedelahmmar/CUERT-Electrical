@@ -1,6 +1,9 @@
 
 #include "../../BLDCM/Hall/Hall.h"
 
+
+static const HALL_ConfigTypeDef *HALL_pxConfigStruct;
+
 static union
 {
 	uint8_t Sector;
@@ -14,34 +17,43 @@ static union
 
 	} Bits;
 
-} xHall = {0};
+} HALL_xSectorState = {0};
 
 
-void HALL_vInit(const HALL_ConfigTypeDef * const pxHallStruct)
+
+void HALL_vInit(const HALL_ConfigTypeDef * const pxConfigStruct)
 {
-	/* GPIO Ports Clock Enable */
-	__HAL_RCC_GPIOC_CLK_ENABLE();
-	__HAL_RCC_GPIOD_CLK_ENABLE();
-	__HAL_RCC_GPIOA_CLK_ENABLE();
-	__HAL_RCC_GPIOB_CLK_ENABLE();
-
-	GPIO_InitTypeDef GPIO_InitStruct = {0};
-
-	/*Configure GPIO pin of Hall U */
-	GPIO_InitStruct.Pin = pxHallStruct->pulHallSensorGpioPins[HALL_Sensor_U];
-	GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
-	GPIO_InitStruct.Pull = GPIO_PULLDOWN;
-	GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
-	HAL_GPIO_Init(pxHallStruct->ppxHallSensorGpioPorts[HALL_Sensor_U], &GPIO_InitStruct);
-
-	/*Configure GPIO pin of Hall V */
-	GPIO_InitStruct.Pin = pxHallStruct->pulHallSensorGpioPins[HALL_Sensor_V];
-	HAL_GPIO_Init(pxHallStruct->ppxHallSensorGpioPorts[HALL_Sensor_V], &GPIO_InitStruct);
-
-	/*Configure GPIO pin of Hall W */
-	GPIO_InitStruct.Pin = pxHallStruct->pulHallSensorGpioPins[HALL_Sensor_W];
-	HAL_GPIO_Init(pxHallStruct->ppxHallSensorGpioPorts[HALL_Sensor_W], &GPIO_InitStruct);
+	if (pxConfigStruct != NULL)
+	{
+		HALL_pxConfigStruct = pxConfigStruct;
+	}
 }
 
-void HALL_vUpdateSector(const HALL_ConfigTypeDef * const pxHallStruct);
-void HALL_vGetSector(const HALL_ConfigTypeDef * const pxHallStruct, uint8_t * const pucBuffer);
+extern __IO union
+{
+	uint8_t Sector;
+	struct
+	{
+		uint8_t HallW 		: 1;
+		uint8_t HallV 		: 1;
+		uint8_t HallU 		: 1;
+		uint8_t Reserved 	: 5;
+	} Instance;
+
+} HallSensors;
+
+HALL_SectorTypeDef HALL_xGetSector(void)
+{
+//	return HALL_xSectorState.Sector;
+	return HallSensors.Sector;
+}
+
+
+
+void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
+{
+	HALL_xSectorState.Bits.U = ( (HALL_pxConfigStruct->ppxSensorPorts[HALL_Sensor_U]->IDR & HALL_pxConfigStruct->pulSensorPins[HALL_Sensor_U]) != 0 );
+	HALL_xSectorState.Bits.V = ( (HALL_pxConfigStruct->ppxSensorPorts[HALL_Sensor_V]->IDR & HALL_pxConfigStruct->pulSensorPins[HALL_Sensor_V]) != 0 );
+	HALL_xSectorState.Bits.W = ( (HALL_pxConfigStruct->ppxSensorPorts[HALL_Sensor_W]->IDR & HALL_pxConfigStruct->pulSensorPins[HALL_Sensor_W]) != 0 );
+}
+

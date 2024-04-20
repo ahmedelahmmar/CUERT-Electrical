@@ -31,6 +31,8 @@ extern "C" {
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
+#include "../../Drivers/BLDCM/BLDCM.h"
+#include "../../Drivers/BLDCM/BLDCM_Cfg.h"
 #include "../../Drivers/BLDCM/PWM/PWM.h"
 #include "../../Drivers/BLDCM/Hall/Hall.h"
 /* USER CODE END Includes */
@@ -54,37 +56,29 @@ extern "C" {
 void Error_Handler(void);
 
 /* USER CODE BEGIN EFP */
-void UpdateCommutationLogic(void);
-void SetDutyCycle(TIM_HandleTypeDef *htim, uint32_t pwmChannel, uint8_t DutyCyclePercentage);
+
 /* USER CODE END EFP */
 
 /* Private defines -----------------------------------------------------------*/
 #define BUILTIN_LED_Pin GPIO_PIN_13
 #define BUILTIN_LED_GPIO_Port GPIOC
-#define mDUTY_POT_Pin GPIO_PIN_0
-#define mDUTY_POT_GPIO_Port GPIOA
-#define mSPEED_POT_Pin GPIO_PIN_1
-#define mSPEED_POT_GPIO_Port GPIOB
+#define ADC_CURRENT_SPEED_POT_Pin GPIO_PIN_0
+#define ADC_CURRENT_SPEED_POT_GPIO_Port GPIOB
+#define PWM_PHASE_U_Pin GPIO_PIN_8
+#define PWM_PHASE_U_GPIO_Port GPIOA
+#define PWM_PHASE_V_Pin GPIO_PIN_9
+#define PWM_PHASE_V_GPIO_Port GPIOA
+#define PWM_PHASE_W_Pin GPIO_PIN_10
+#define PWM_PHASE_W_GPIO_Port GPIOA
+#define ICU_HALL_SENSOR_X_Pin GPIO_PIN_11
+#define ICU_HALL_SENSOR_X_GPIO_Port GPIOA
+#define PWM_CURRENT_SPEED_PERCENT_Pin GPIO_PIN_6
+#define PWM_CURRENT_SPEED_PERCENT_GPIO_Port GPIOB
 
 /* USER CODE BEGIN Private defines */
 
 #define mSPEED_POT_INDEX	0
 #define mDUTY_POT_INDEX		1
-
-#define SECTOR_1				0b110
-#define SECTOR_2				0b100
-#define SECTOR_3				0b101
-#define SECTOR_4				0b001
-#define SECTOR_5				0b011
-#define SECTOR_6				0b010
-
-#define mHU_TIMER_HANDLE	&htim2
-#define mHV_TIMER_HANDLE	&htim3
-#define mHW_TIMER_HANDLE	&htim4
-
-#define mHU_TIMER_CHANNEL	TIM_CHANNEL_1
-#define mHV_TIMER_CHANNEL	TIM_CHANNEL_1
-#define mHW_TIMER_CHANNEL	TIM_CHANNEL_2
 
 #define MOTOR_POLE_PAIRS	5
 #define MOTOR_STOPPED		0

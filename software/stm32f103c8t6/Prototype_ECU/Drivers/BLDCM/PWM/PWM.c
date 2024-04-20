@@ -1,7 +1,10 @@
 
 #include "PWM.h"
 
-static uint32_t SPWM_LUT[BLDCM_SPWM_LUT_SIZE] = {0, 3, 5, 8, 10, 13, 15, 18, 20, 23,
+#include "../BLDCM_Cfg.h"
+
+
+static uint32_t PWM_prvpulSPWM_LUT[BLDCM_SPWM_LUT_SIZE] = {0, 3, 5, 8, 10, 13, 15, 18, 20, 23,
 													   25, 28, 30, 32, 35, 37, 39, 42, 44,
 													   46, 49, 51, 53, 55, 57, 59, 61, 63,
 													   65, 67, 69, 71, 72, 74, 76, 78, 79,
@@ -17,68 +20,141 @@ static uint32_t SPWM_LUT[BLDCM_SPWM_LUT_SIZE] = {0, 3, 5, 8, 10, 13, 15, 18, 20,
 													   20, 18, 15, 13, 10, 8, 5, 3, 0};
 
 
+static const PWM_ConfigTypeDef *PWM_prvpxConfigStruct = NULL;
 
-static void PWM_vSetDutyCycle(TIM_HandleTypeDef *htim, uint32_t pwmChannel, uint8_t DutyCyclePercentage);
 
+static void PWM_prvvSetDutyCycle(TIM_HandleTypeDef *htim, uint32_t pwmChannel, uint8_t DutyCyclePercentage);
 
 
 void PWM_vInit(const PWM_ConfigTypeDef * const pxConfigStruct)
 {
 	if (pxConfigStruct != NULL)
 	{
+		PWM_prvpxConfigStruct = pxConfigStruct;
+
 		for (uint8_t ucIndex = 0; ucIndex < 3; ++ucIndex)
 		{
-			HAL_TIM_PWM_Start(pxConfigStruct->ppxPhaseTimerHandles[ucIndex], pxConfigStruct->pulPhaseTimerChannels[ucIndex]);
+			__HAL_TIM_SET_COMPARE(PWM_prvpxConfigStruct->ppxPhaseTimerHandles[ucIndex],
+								  PWM_prvpxConfigStruct->pulPhaseTimerChannels[ucIndex],
+								  0);
+
+			HAL_TIM_PWM_Start(PWM_prvpxConfigStruct->ppxPhaseTimerHandles[ucIndex],
+						      PWM_prvpxConfigStruct->pulPhaseTimerChannels[ucIndex]);
 		}
 	}
 }
 
 
-void PWM_vStart(const PWM_ConfigTypeDef * const pxConfigStruct, const PWM_PhaseTypeDef xPhase, const uint8_t ucDutyCycle)
+void PWM_vStart(const PWM_PhaseTypeDef xPhase, const uint8_t ucDutyCycle)
 {
-	if (pxConfigStruct != NULL)
+	if (PWM_prvpxConfigStruct != NULL)
 	{
-		PWM_vSetDutyCycle(pxConfigStruct->ppxPhaseTimerHandles[xPhase], pxConfigStruct->pulPhaseTimerChannels[xPhase], ucDutyCycle);
+		PWM_prvvSetDutyCycle(PWM_prvpxConfigStruct->ppxPhaseTimerHandles[xPhase],
+							 PWM_prvpxConfigStruct->pulPhaseTimerChannels[xPhase],
+							 ucDutyCycle);
+
+		HAL_TIM_PWM_Start_IT(PWM_prvpxConfigStruct->ppxPhaseTimerHandles[xPhase],
+							 PWM_prvpxConfigStruct->pulPhaseTimerChannels[xPhase]);
 	}
 }
 
 
-void PWM_vStop(const PWM_ConfigTypeDef * const pxConfigStruct, const PWM_PhaseTypeDef xPhase)
+void PWM_vStop(const PWM_PhaseTypeDef xPhase)
 {
-	if (pxConfigStruct != NULL)
+	if (PWM_prvpxConfigStruct != NULL)
 	{
-		PWM_vSetDutyCycle(pxConfigStruct->ppxPhaseTimerHandles[xPhase], pxConfigStruct->pulPhaseTimerChannels[xPhase], 0);
+		PWM_prvvSetDutyCycle(PWM_prvpxConfigStruct->ppxPhaseTimerHandles[xPhase],
+							 PWM_prvpxConfigStruct->pulPhaseTimerChannels[xPhase],
+							 0);
 	}
 }
 
 
-void PWM_vDeInit(const PWM_ConfigTypeDef * const pxConfigStruct)
+//void PWM_vDeInit(const PWM_ConfigTypeDef * const pxConfigStruct)
+//{
+//	if (pxConfigStruct != NULL)
+//	{
+//		for (uint8_t ucIndex = 0; ucIndex < 3; ++ucIndex)
+//		{
+//			HAL_TIM_PWM_DeInit(pxConfigStruct->ppxPhaseTimerHandles[ucIndex]);
+//		}
+//	}
+//}
+
+
+void PWM_vSetModeTo(const PWM_ModesTypeDef xMode)
 {
-	if (pxConfigStruct != NULL)
+	if (PWM_prvpxConfigStruct != NULL)
 	{
-		for (uint8_t ucIndex = 0; ucIndex < 3; ++ucIndex)
+		switch (xMode)
 		{
-			HAL_TIM_PWM_DeInit(pxConfigStruct->ppxPhaseTimerHandles[ucIndex]);
+			case PWM:
+
+				for (uint8_t ucIndex = 0; ucIndex < 3; ++ucIndex)
+				{
+					if ( BLDCM_STOPPING == BLDCM_xGetTransitionState() )
+					{
+						HAL_TIM_PWM_Stop_DMA(PWM_prvpxConfigStruct->ppxPhaseTimerHandles[ucIndex],
+											 PWM_prvpxConfigStruct->pulPhaseTimerChannels[ucIndex]);
+					}
+
+					HAL_TIM_PWM_Start_IT(PWM_prvpxConfigStruct->ppxPhaseTimerHandles[ucIndex],
+										PWM_prvpxConfigStruct->pulPhaseTimerChannels[ucIndex]);
+
+					__HAL_TIM_SET_COMPARE(PWM_prvpxConfigStruct->ppxPhaseTimerHandles[ucIndex],
+										  PWM_prvpxConfigStruct->pulPhaseTimerChannels[ucIndex],
+										  0);
+				}
+
+				break;
+
+			case SPWM:
+
+				for (uint8_t ucIndex = 0; ucIndex < 3; ++ucIndex)
+				{
+					__HAL_TIM_SET_COMPARE(PWM_prvpxConfigStruct->ppxPhaseTimerHandles[ucIndex],
+										  PWM_prvpxConfigStruct->pulPhaseTimerChannels[ucIndex],
+										  0);
+
+					HAL_TIM_PWM_Stop_IT(PWM_prvpxConfigStruct->ppxPhaseTimerHandles[ucIndex],
+										PWM_prvpxConfigStruct->pulPhaseTimerChannels[ucIndex]);
+				}
+
+				break;
 		}
 	}
 }
 
+void PWM_vSetSPWMFrequency(const uint32_t ulFrequency);
 
-void PWM_vSetSPWMFrequency(const PWM_ConfigTypeDef * const pxConfigStruct, const uint32_t ulFrequency);
-
-void PWM_vStartSPWM(const PWM_ConfigTypeDef * const pxConfigStruct, const PWM_PhaseTypeDef xPhase)
+void PWM_vStartSPWM(const PWM_PhaseTypeDef xPhase)
 {
-	if (pxConfigStruct != NULL)
+	if (PWM_prvpxConfigStruct != NULL)
 	{
-		HAL_TIM_PWM_Start_DMA(pxConfigStruct->ppxPhaseTimerHandles[xPhase],
-							  pxConfigStruct->pulPhaseTimerChannels[xPhase],
-							  SPWM_LUT,
+		HAL_TIM_PWM_Start_DMA(PWM_prvpxConfigStruct->ppxPhaseTimerHandles[xPhase],
+						      PWM_prvpxConfigStruct->pulPhaseTimerChannels[xPhase],
+							  PWM_prvpulSPWM_LUT,
 							  BLDCM_SPWM_LUT_SIZE);
 	}
 }
 
+void HAL_TIM_PWM_PulseFinishedHalfCpltCallback(TIM_HandleTypeDef *htim)
+{
+	if (PWM_prvpxConfigStruct != NULL)
+	{
+		if ( (&mPHASE_U_TIMER_HANDLE == htim) && (mPHASE_U_TIMER_ACTIVE_CHANNEL == htim->Channel) )
+		{
+			PWM_vStartSPWM(PWM_Phase_V);
+		}
+		else if ((&mPHASE_V_TIMER_HANDLE == htim) && (mPHASE_V_TIMER_ACTIVE_CHANNEL == htim->Channel) )
+		{
+			PWM_vStartSPWM(PWM_Phase_W);
+		}
+	}
+}
 
-static void PWM_vSetDutyCycle(TIM_HandleTypeDef *htim, uint32_t pwmChannel, uint8_t DutyCyclePercentage)
+
+static void PWM_prvvSetDutyCycle(TIM_HandleTypeDef *htim, uint32_t pwmChannel, uint8_t DutyCyclePercentage)
 {
 	if ( (0 <= DutyCyclePercentage) && (DutyCyclePercentage <= 100) )
 	{

@@ -22,6 +22,7 @@
 #include "stm32f1xx_it.h"
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
+#include "../../Drivers/BLDCM/BLDCM.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -41,7 +42,11 @@
 
 /* Private variables ---------------------------------------------------------*/
 /* USER CODE BEGIN PV */
-
+static volatile uint32_t ICU_ulNumberOfPeriodOverflows;
+static volatile uint32_t ICU_ulCapturedTicks1 = 0;
+static volatile uint32_t ICU_ulCapturedTicks2 = 0;
+static volatile uint32_t ICU_ulTotalTicks = 0;
+static volatile uint32_t ICU_ulCapturedBefore = 0;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -54,28 +59,14 @@
 /* USER CODE END 0 */
 
 /* External variables --------------------------------------------------------*/
-extern DMA_HandleTypeDef hdma_adc1;
-extern DMA_HandleTypeDef hdma_tim2_ch1;
-extern DMA_HandleTypeDef hdma_tim3_ch1_trig;
-extern DMA_HandleTypeDef hdma_tim4_ch2;
+extern ADC_HandleTypeDef hadc1;
+extern DMA_HandleTypeDef hdma_tim1_ch1;
+extern DMA_HandleTypeDef hdma_tim1_ch2;
+extern DMA_HandleTypeDef hdma_tim1_ch3;
 extern TIM_HandleTypeDef htim1;
+extern TIM_HandleTypeDef htim4;
 /* USER CODE BEGIN EV */
 
-extern __IO union
-{
-	uint8_t allBits;
-	struct
-	{
-		uint8_t MotorDirection 	: 1;
-		uint8_t MotorState 		: 1;
-		uint8_t AdcConversionsCompleted : 1;
-		uint8_t Flag3 : 1;
-		uint8_t Flag4 : 1;
-		uint8_t Flag5 : 1;
-		uint8_t Flag6 : 1;
-		uint8_t Flag7 : 1;
-	} Bits;
-} Flags;
 
 
 extern __IO union
@@ -232,45 +223,31 @@ void SysTick_Handler(void)
 /******************************************************************************/
 
 /**
-  * @brief This function handles DMA1 channel1 global interrupt.
+  * @brief This function handles DMA1 channel2 global interrupt.
   */
-void DMA1_Channel1_IRQHandler(void)
+void DMA1_Channel2_IRQHandler(void)
 {
-  /* USER CODE BEGIN DMA1_Channel1_IRQn 0 */
+  /* USER CODE BEGIN DMA1_Channel2_IRQn 0 */
 
-  /* USER CODE END DMA1_Channel1_IRQn 0 */
-  HAL_DMA_IRQHandler(&hdma_adc1);
-  /* USER CODE BEGIN DMA1_Channel1_IRQn 1 */
+  /* USER CODE END DMA1_Channel2_IRQn 0 */
+  HAL_DMA_IRQHandler(&hdma_tim1_ch1);
+  /* USER CODE BEGIN DMA1_Channel2_IRQn 1 */
 
-  /* USER CODE END DMA1_Channel1_IRQn 1 */
+  /* USER CODE END DMA1_Channel2_IRQn 1 */
 }
 
 /**
-  * @brief This function handles DMA1 channel4 global interrupt.
+  * @brief This function handles DMA1 channel3 global interrupt.
   */
-void DMA1_Channel4_IRQHandler(void)
+void DMA1_Channel3_IRQHandler(void)
 {
-  /* USER CODE BEGIN DMA1_Channel4_IRQn 0 */
+  /* USER CODE BEGIN DMA1_Channel3_IRQn 0 */
 
-  /* USER CODE END DMA1_Channel4_IRQn 0 */
-  HAL_DMA_IRQHandler(&hdma_tim4_ch2);
-  /* USER CODE BEGIN DMA1_Channel4_IRQn 1 */
+  /* USER CODE END DMA1_Channel3_IRQn 0 */
+  HAL_DMA_IRQHandler(&hdma_tim1_ch2);
+  /* USER CODE BEGIN DMA1_Channel3_IRQn 1 */
 
-  /* USER CODE END DMA1_Channel4_IRQn 1 */
-}
-
-/**
-  * @brief This function handles DMA1 channel5 global interrupt.
-  */
-void DMA1_Channel5_IRQHandler(void)
-{
-  /* USER CODE BEGIN DMA1_Channel5_IRQn 0 */
-
-  /* USER CODE END DMA1_Channel5_IRQn 0 */
-  HAL_DMA_IRQHandler(&hdma_tim2_ch1);
-  /* USER CODE BEGIN DMA1_Channel5_IRQn 1 */
-
-  /* USER CODE END DMA1_Channel5_IRQn 1 */
+  /* USER CODE END DMA1_Channel3_IRQn 1 */
 }
 
 /**
@@ -281,10 +258,24 @@ void DMA1_Channel6_IRQHandler(void)
   /* USER CODE BEGIN DMA1_Channel6_IRQn 0 */
 
   /* USER CODE END DMA1_Channel6_IRQn 0 */
-  HAL_DMA_IRQHandler(&hdma_tim3_ch1_trig);
+  HAL_DMA_IRQHandler(&hdma_tim1_ch3);
   /* USER CODE BEGIN DMA1_Channel6_IRQn 1 */
 
   /* USER CODE END DMA1_Channel6_IRQn 1 */
+}
+
+/**
+  * @brief This function handles ADC1 and ADC2 global interrupts.
+  */
+void ADC1_2_IRQHandler(void)
+{
+  /* USER CODE BEGIN ADC1_2_IRQn 0 */
+
+  /* USER CODE END ADC1_2_IRQn 0 */
+  HAL_ADC_IRQHandler(&hadc1);
+  /* USER CODE BEGIN ADC1_2_IRQn 1 */
+
+  /* USER CODE END ADC1_2_IRQn 1 */
 }
 
 /**
@@ -301,6 +292,34 @@ void TIM1_UP_IRQHandler(void)
   /* USER CODE END TIM1_UP_IRQn 1 */
 }
 
+/**
+  * @brief This function handles TIM1 capture compare interrupt.
+  */
+void TIM1_CC_IRQHandler(void)
+{
+  /* USER CODE BEGIN TIM1_CC_IRQn 0 */
+
+  /* USER CODE END TIM1_CC_IRQn 0 */
+  HAL_TIM_IRQHandler(&htim1);
+  /* USER CODE BEGIN TIM1_CC_IRQn 1 */
+
+  /* USER CODE END TIM1_CC_IRQn 1 */
+}
+
+/**
+  * @brief This function handles TIM4 global interrupt.
+  */
+void TIM4_IRQHandler(void)
+{
+  /* USER CODE BEGIN TIM4_IRQn 0 */
+
+  /* USER CODE END TIM4_IRQn 0 */
+  HAL_TIM_IRQHandler(&htim4);
+  /* USER CODE BEGIN TIM4_IRQn 1 */
+
+  /* USER CODE END TIM4_IRQn 1 */
+}
+
 /* USER CODE BEGIN 1 */
 
 void HAL_TIM_PWM_PulseFinishedCallback(TIM_HandleTypeDef *htim)
@@ -308,28 +327,38 @@ void HAL_TIM_PWM_PulseFinishedCallback(TIM_HandleTypeDef *htim)
 
 }
 
-//void HAL_TIM_IC_CaptureCallback(TIM_HandleTypeDef *htim)
-//{
-//	if ( &htim2 == htim )
-//	{
-//		if ( HAL_TIM_ACTIVE_CHANNEL_1 == htim->Channel )
-//		{
-//			 __IO uint32_t captureValue = HAL_TIM_ReadCapturedValue(htim, TIM_CHANNEL_1);
-//			 nTim2PeriodsBetweenCaptures = ( 0 == captureValue ) ? 0 : nTim2PeriodsBetweenCaptures;
-//
-//			 if ( 0 != captureValue )
-//			 {
-//				 captureValue += (uint32_t)(0xFFFF * nTim2PeriodsBetweenCaptures);
-//				 MotorRPS = (float)TIMER2_CLOCK_FREQ_HZ / (float)(captureValue * MOTOR_POLE_PAIRS);
-//			 }
-//		}
-//	}
-//}
+
+
+void HAL_TIM_IC_CaptureCallback(TIM_HandleTypeDef *htim)
+{
+	if ( (&htim1 == htim) && (HAL_TIM_ACTIVE_CHANNEL_4 == htim->Channel) ) // ICU_HALL_SENSOR_X
+	{
+		 if (ICU_ulCapturedBefore)
+		 {
+			 ICU_ulCapturedTicks2 = HAL_TIM_ReadCapturedValue(htim, TIM_CHANNEL_4);
+			 ICU_ulTotalTicks = (ICU_ulCapturedTicks2 + (ICU_ulNumberOfPeriodOverflows * 0xFFFF)) - ICU_ulCapturedTicks1;
+			 ICU_ulCapturedBefore = 0;
+
+			 (void) BLDCM_vUpdateMotorActualSpeedParameters(ICU_ulTotalTicks);
+		 }
+		 else
+		 {
+			 ICU_ulNumberOfPeriodOverflows = 0;
+			 ICU_ulCapturedTicks1 = HAL_TIM_ReadCapturedValue(htim, TIM_CHANNEL_4);
+			 ICU_ulCapturedBefore = 1;
+		 }
+	}
+}
+
 
 
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 {
 	if ( &htim1 == htim )
+	{
+		ICU_ulNumberOfPeriodOverflows++;
+	}
+    else if ( &htim4 == htim )
 	{
 		static const uint8_t CommutationSequence[] = {0b110, 0b100, 0b101, 0b001, 0b011, 0b010};
 
@@ -341,9 +370,13 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 			HallCurrentState = 0;
 		}
 
-		S180_UpdateCommutation();
-	}
+		if ( 0 == HallCurrentState || 3 == HallCurrentState )
+		{
+			HAL_GPIO_TogglePin(GPIOC, GPIO_PIN_13);
+		}
 
+		BLDCM_vCommutate(BLDCM_COMMUTATION_PWM_180);
+	}
 }
 
 
