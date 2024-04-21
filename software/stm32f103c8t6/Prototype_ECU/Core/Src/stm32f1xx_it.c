@@ -64,6 +64,7 @@ extern DMA_HandleTypeDef hdma_tim1_ch1;
 extern DMA_HandleTypeDef hdma_tim1_ch2;
 extern DMA_HandleTypeDef hdma_tim1_ch3;
 extern TIM_HandleTypeDef htim1;
+extern TIM_HandleTypeDef htim2;
 extern TIM_HandleTypeDef htim4;
 /* USER CODE BEGIN EV */
 
@@ -307,6 +308,20 @@ void TIM1_CC_IRQHandler(void)
 }
 
 /**
+  * @brief This function handles TIM2 global interrupt.
+  */
+void TIM2_IRQHandler(void)
+{
+  /* USER CODE BEGIN TIM2_IRQn 0 */
+
+  /* USER CODE END TIM2_IRQn 0 */
+  HAL_TIM_IRQHandler(&htim2);
+  /* USER CODE BEGIN TIM2_IRQn 1 */
+
+  /* USER CODE END TIM2_IRQn 1 */
+}
+
+/**
   * @brief This function handles TIM4 global interrupt.
   */
 void TIM4_IRQHandler(void)
@@ -331,11 +346,11 @@ void HAL_TIM_PWM_PulseFinishedCallback(TIM_HandleTypeDef *htim)
 
 void HAL_TIM_IC_CaptureCallback(TIM_HandleTypeDef *htim)
 {
-	if ( (&htim1 == htim) && (HAL_TIM_ACTIVE_CHANNEL_4 == htim->Channel) ) // ICU_HALL_SENSOR_X
+	if ( (&htim2 == htim) && (HAL_TIM_ACTIVE_CHANNEL_1 == htim->Channel) ) // ICU_HALL_SENSOR_X
 	{
 		 if (ICU_ulCapturedBefore)
 		 {
-			 ICU_ulCapturedTicks2 = HAL_TIM_ReadCapturedValue(htim, TIM_CHANNEL_4);
+			 ICU_ulCapturedTicks2 = HAL_TIM_ReadCapturedValue(htim, TIM_CHANNEL_1);
 			 ICU_ulTotalTicks = (ICU_ulCapturedTicks2 + (ICU_ulNumberOfPeriodOverflows * 0xFFFF)) - ICU_ulCapturedTicks1;
 			 ICU_ulCapturedBefore = 0;
 
@@ -344,7 +359,7 @@ void HAL_TIM_IC_CaptureCallback(TIM_HandleTypeDef *htim)
 		 else
 		 {
 			 ICU_ulNumberOfPeriodOverflows = 0;
-			 ICU_ulCapturedTicks1 = HAL_TIM_ReadCapturedValue(htim, TIM_CHANNEL_4);
+			 ICU_ulCapturedTicks1 = HAL_TIM_ReadCapturedValue(htim, TIM_CHANNEL_1);
 			 ICU_ulCapturedBefore = 1;
 		 }
 	}
@@ -354,7 +369,7 @@ void HAL_TIM_IC_CaptureCallback(TIM_HandleTypeDef *htim)
 
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 {
-	if ( &htim1 == htim )
+	if ( &htim2 == htim )
 	{
 		ICU_ulNumberOfPeriodOverflows++;
 	}
@@ -370,12 +385,10 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 			HallCurrentState = 0;
 		}
 
-		if ( 0 == HallCurrentState || 3 == HallCurrentState )
+		if ( 1 == HallCurrentState || 4 == HallCurrentState )
 		{
 			HAL_GPIO_TogglePin(GPIOC, GPIO_PIN_13);
 		}
-
-		BLDCM_vCommutate(BLDCM_COMMUTATION_PWM_180);
 	}
 }
 

@@ -6,22 +6,25 @@
 #include "PWM/PWM.h"
 
 /* U,V, and W Phase Defines */
-#define mPHASE_U_TIMER_HANDLE				htim1
-#define mPHASE_V_TIMER_HANDLE				htim1
-#define mPHASE_W_TIMER_HANDLE				htim1
+#define mPHASE_U_TIMER_HANDLE					htim1
+#define mPHASE_V_TIMER_HANDLE					htim1
+#define mPHASE_W_TIMER_HANDLE					htim1
 
-#define mPHASE_U_TIMER_CHANNEL				TIM_CHANNEL_1
-#define mPHASE_V_TIMER_CHANNEL				TIM_CHANNEL_2
-#define mPHASE_W_TIMER_CHANNEL				TIM_CHANNEL_3
+#define mPHASE_U_TIMER_CHANNEL					TIM_CHANNEL_1
+#define mPHASE_V_TIMER_CHANNEL					TIM_CHANNEL_2
+#define mPHASE_W_TIMER_CHANNEL					TIM_CHANNEL_3
 
-#define mPHASE_U_TIMER_ACTIVE_CHANNEL		HAL_TIM_ACTIVE_CHANNEL_1
-#define mPHASE_V_TIMER_ACTIVE_CHANNEL		HAL_TIM_ACTIVE_CHANNEL_2
-#define mPHASE_W_TIMER_ACTIVE_CHANNEL		HAL_TIM_ACTIVE_CHANNEL_3
+#define mPHASE_U_TIMER_ACTIVE_CHANNEL			HAL_TIM_ACTIVE_CHANNEL_1
+#define mPHASE_V_TIMER_ACTIVE_CHANNEL			HAL_TIM_ACTIVE_CHANNEL_2
+#define mPHASE_W_TIMER_ACTIVE_CHANNEL			HAL_TIM_ACTIVE_CHANNEL_3
 
 
 /* Timer Defines */
-#define mICU_TIMER_HANDLE					htim1
-#define mICU_TIMER_RUNNING_FREQUENCY_HZ		72e6
+#define mICU_TIMER_HANDLE						htim2
+#define mICU_TIMER_RUNNING_FREQUENCY_HZ			72e6
+#define mPHASE_U_TIMER_RUNNIING_FREQUENCY_HZ	72e6
+#define mPHASE_V_TIMER_RUNNIING_FREQUENCY_HZ	72e6
+#define mPHASE_W_TIMER_RUNNIING_FREQUENCY_HZ	72e6
 
 
 /* External Handles */
@@ -63,18 +66,19 @@ typedef enum
 
 void 						BLDCM_vInit(void);
 void 						BLDCM_vSetState(BLDCM_StateTypeDef xState);
-void 						BLDCM_vSetTransitionState(BLDCM_StateTypeDef xState);
+//void 						BLDCM_vSetTransitionState(BLDCM_StateTypeDef xState);
 void 						BLDCM_vUpdateMotorDesiredSpeedParameters(float fDesiredRPM);
 void 						BLDCM_vUpdateMotorActualSpeedParameters(uint32_t ulTotalNumberOfTicks);
 void 						BLDCM_vCommutate(BLDCM_CommutationTypeDef xCommutationLogic);
 
 float 						BLDCM_fGetMotorActualRPM(void);
 float						BLDCM_fGetMotorActualRPMPercent(void);
-float	 					BLDCM_fGetDesiredRPMPercent(void);
 float						BLDCM_fGetMotorDesiredRPMPercent(void);
 
+uint8_t 					BLDCM_ucGetActualPWMDutyCycle(void);
+
 BLDCM_StateTypeDef 			BLDCM_xGetState(void);
-BLDCM_StateTypeDef 			BLDCM_xGetTransitionState(void);
+//BLDCM_StateTypeDef 			BLDCM_xGetTransitionState(void);
 BLDCM_StateTypeDef 			BLDCM_xStartMotor(void);
 BLDCM_StateTypeDef 			BLDCM_xStopMotor(void);
 

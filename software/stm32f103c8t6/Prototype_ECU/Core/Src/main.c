@@ -79,6 +79,7 @@ volatile uint8_t ADC_pucReadingCounter = 0;
 
 float fActualRPMPercent;
 float fSimRPMPercent;
+float fDesiredRPMPercent;
 
 BLDCM_StateTypeDef xMotorCurrentState;
 BLDCM_StateTypeDef xMotorTransitionState;
@@ -128,14 +129,15 @@ int main(void)
   MX_TIM1_Init();
   MX_TIM4_Init();
   MX_ADC1_Init();
+  MX_TIM2_Init();
   /* USER CODE BEGIN 2 */
 
   /*
    * Start the ICU responsible for:
    * 	- Actual speed calculataion using a hall sensor input.
    */
-  HAL_TIM_Base_Start_IT(&htim1);
-  HAL_TIM_IC_Start_IT(&htim1, TIM_CHANNEL_4);
+  HAL_TIM_Base_Start_IT(&htim2);
+  HAL_TIM_IC_Start_IT(&htim2, TIM_CHANNEL_1);
 
 
   /*
@@ -173,7 +175,7 @@ int main(void)
     /* USER CODE BEGIN 3 */
 
 	  fActualRPM = BLDCM_fGetMotorActualRPM();
-	  fActualRPMPercent = (fActualRPM / BLDCM_MAX_SPEED_RPM) * 100;
+	  fActualRPMPercent = (fActualRPM / mBLDCM_MAX_SPEED_RPM) * 100;
 
 	  xMotorCurrentState = BLDCM_xGetState();
 
@@ -181,48 +183,16 @@ int main(void)
 	  {
 		  case BLDCM_IDLE:
 
-			  if ( BLDCM_IDLE_STATE_THRESHOLD_PERCENTAGE < BLDCM_fGetDesiredRPMPercent() )
-			  {
-				  BLDCM_vSetTransitionState(BLDCM_STARTING);
-			  }
-			  else
-			  {
-				  BLDCM_vSetTransitionState(BLDCM_IDLE);
-			  }
-
-			  break;
-
-		  case BLDCM_RUNNING:
-
-			  BLDCM_vCommutate(BLDCM_COMMUTATION_SPWM_180);
-
-			  if ( BLDCM_TRANSITION_STATE_THRESHOLD_PERCENTAGE < BLDCM_fGetDesiredRPMPercent() )
-			  {
-				  BLDCM_vSetTransitionState(BLDCM_RUNNING);
-			  }
-			  else
-			  {
-				  BLDCM_vSetTransitionState(BLDCM_STOPPING);
-			  }
-
-			  break;
-
-		  default: break;
-	  }
-
-	  xMotorTransitionState = BLDCM_xGetTransitionState();
-
-	  switch ( xMotorTransitionState )
-	  {
-		  case BLDCM_IDLE:
-
 			  (void) PWM_vStop(PWM_Phase_U);
 			  (void) PWM_vStop(PWM_Phase_V);
 			  (void) PWM_vStop(PWM_Phase_W);
 
-			  (void) BLDCM_vSetState(BLDCM_IDLE);
+			  if ( mBLDCM_IDLE_STATE_THRESHOLD_PERCENTAGE < BLDCM_fGetMotorActualRPMPercent() )
+			  {
+				  (void) BLDCM_vSetState(BLDCM_STARTING);
+			  }
 
-		  	  break;
+			  break;
 
 		  case BLDCM_STARTING:
 
@@ -238,6 +208,14 @@ int main(void)
 			  break;
 
 		  case BLDCM_RUNNING:
+
+			  BLDCM_vCommutate(BLDCM_COMMUTATION_SPWM_180);
+
+			  if ( (uint8_t)BLDCM_fGetMotorActualRPMPercent() <  mBLDCM_TRANSITION_STATE_THRESHOLD_PERCENTAGE )
+			  {
+				  BLDCM_vSetState(BLDCM_STOPPING);
+			  }
+
 			  break;
 
 		  case BLDCM_STOPPING:
@@ -328,11 +306,15 @@ void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef* hadc)
 		ADC_pulReadingBuffer = ADC_pulReadingBuffer >> 5;
 		ADC_pucReadingCounter = 0;
 
-		fSimRPM = ((float)BLDCM_MAX_SPEED_RPM / 4095) * ADC_pulReadingBuffer;
-		fSimRPMPercent = (fSimRPM / BLDCM_MAX_SPEED_RPM) * 100;
+		fSimRPM = (float)((float)(mBLDCM_MAX_SPEED_RPM * ADC_pulReadingBuffer) / 4095);
+		fSimRPMPercent = (fSimRPM / mBLDCM_MAX_SPEED_RPM) * 100;
 
-		SetDutyCycle(&htim4, TIM_CHANNEL_1, fSimRPMPercent);
+		SetDutyCycle(&htim4, TIM_CHANNEL_1, (uint8_t)fSimRPMPercent);
+
 		BLDCM_vUpdateMotorDesiredSpeedParameters(fSimRPM);
+
+		uint32_t ulTim4Prescaler = -14.58 * ADC_pulReadingBuffer + 60000;
+		__HAL_TIM_SET_PRESCALER(&htim4, ulTim4Prescaler);
 	}
 }
 

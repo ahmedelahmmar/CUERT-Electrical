@@ -26,12 +26,7 @@ typedef struct
 } PWM_ConfigTypeDef;
 
 void PWM_vInit(const PWM_ConfigTypeDef * const pxConfigStruct);
-void PWM_vStart(const PWM_PhaseTypeDef xHallPhase, const uint8_t ucDutyCycle);
+void PWM_vStart(const PWM_ModesTypeDef xMode, const PWM_PhaseTypeDef xPhase);
 void PWM_vStop(const PWM_PhaseTypeDef xHallPhase);
-
-void PWM_vSetModeTo(const PWM_ModesTypeDef xMode);
-void PWM_vSetSPWMFrequency(const uint32_t ulFrequency);
-void PWM_vStartSPWM(const PWM_PhaseTypeDef xHallPhase);
-
 
 #endif /* _SPWM_H_ */
