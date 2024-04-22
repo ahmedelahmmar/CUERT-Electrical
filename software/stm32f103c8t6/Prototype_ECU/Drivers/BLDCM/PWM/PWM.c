@@ -4,7 +4,7 @@
 
 static const PWM_ConfigTypeDef *PWM_prvpxConfigStruct = NULL;
 
-static uint8_t PWM_prvpucConstantDuty_LUT[mBLDCM_TRANSITION_STATE_THRESHOLD_PERCENTAGE][mBLDCM_LUT_SIZE] = {0};
+static uint8_t PWM_prvpucConstantDuty_LUT[mBLDCM_TRANSITION_STATE_THRESHOLD_PERCENTAGE + 5][mBLDCM_LUT_SIZE] = {0};
 
 static uint32_t PWM_prvpulPhaseTimerFrequencies[] = {mPHASE_U_TIMER_RUNNIING_FREQUENCY_HZ,
 													mPHASE_V_TIMER_RUNNIING_FREQUENCY_HZ,
@@ -29,7 +29,7 @@ void PWM_vInit(const PWM_ConfigTypeDef * const pxConfigStruct)
 	{
 		PWM_prvpxConfigStruct = pxConfigStruct;
 
-		for (uint8_t ucIndex = 0; ucIndex < mBLDCM_TRANSITION_STATE_THRESHOLD_PERCENTAGE; ++ucIndex)
+		for (uint8_t ucIndex = 0; ucIndex < mBLDCM_TRANSITION_STATE_THRESHOLD_PERCENTAGE + 5; ++ucIndex)
 		{
 
 			for (uint8_t ucElementIndex = 0; ucElementIndex < mBLDCM_LUT_SIZE - 1; ++ucElementIndex)
@@ -49,7 +49,6 @@ void PWM_vInit(const PWM_ConfigTypeDef * const pxConfigStruct)
 										 PWM_prvpxConfigStruct->pulPhaseTimerChannels[ucIndex],
 										 (uint32_t *)PWM_prvpucConstantDuty_LUT[0],
 										 mBLDCM_LUT_SIZE);
-
 			}
 		}
 	}
@@ -61,26 +60,35 @@ void PWM_vStart(const PWM_ModesTypeDef xMode, const PWM_PhaseTypeDef xPhase)
 	if (PWM_prvpxConfigStruct != NULL)
 	{
 
-		if ( PWM_Phase_U == xPhase )
-		{
-
-			(void) PWM_prvvAdjustSPWMFrequency( BLDCM_fGetMotorActualRPMPercent() );
-
-//				if ( BLDCM_xGetDesiredSpeedChange() == BLDCM_SPEED_CONSTANT )
-//				{
-//					(void) PWM_prvvAdjustSPWMFrequency( BLDCM_fGetMotorActualRPMPercent() );
-//				}
-//				else
-//				{
-//					(void) PWM_prvvAdjustSPWMFrequency( BLDCM_fGetMotorDesiredRPMPercent() );
-//				}
-		}
+		BLDCM_SpeedChangeTypeDef DesiredChange = BLDCM_xGetDesiredSpeedChange();
 
 		switch ( xMode )
 		{
 			case PWM:
 
-				uint8_t ucDutyCycle = (uint8_t)BLDCM_fGetMotorActualRPMPercent();
+				uint8_t ucDutyCycle = BLDCM_fGetMotorActualRPMPercent();
+
+				if ( PWM_Phase_U == xPhase )
+				{
+					(void) PWM_prvvAdjustSPWMFrequency( BLDCM_fGetMotorActualRPMPercent() );
+				}
+
+				if ( DesiredChange == BLDCM_SPEED_INCREASING )
+				{
+					ucDutyCycle += 2;
+				}
+				else if ( DesiredChange == BLDCM_SPEED_DECREASING )
+				{
+					if ( ucDutyCycle >= 2 )
+					{
+						ucDutyCycle -= 2;
+					}
+					else
+					{
+						ucDutyCycle = 0;
+					}
+				}
+
 
 				if ( ucDutyCycle < mBLDCM_TRANSITION_STATE_THRESHOLD_PERCENTAGE )
 				{
@@ -88,16 +96,38 @@ void PWM_vStart(const PWM_ModesTypeDef xMode, const PWM_PhaseTypeDef xPhase)
 										  PWM_prvpxConfigStruct->pulPhaseTimerChannels[xPhase],
 										  (uint32_t *)PWM_prvpucConstantDuty_LUT[ucDutyCycle],
 										  mBLDCM_LUT_SIZE);
+
+					HAL_TIMEx_PWMN_Start_DMA(PWM_prvpxConfigStruct->ppxPhaseTimerHandles[xPhase],
+							  	  	  	  	 PWM_prvpxConfigStruct->pulPhaseTimerChannels[xPhase],
+											 (uint32_t *)PWM_prvpucConstantDuty_LUT[ucDutyCycle],
+											 mBLDCM_LUT_SIZE);
 				}
 
 				break;
 
 			case SPWM:
 
+				if ( PWM_Phase_U == xPhase )
+				{
+					if ( DesiredChange == BLDCM_SPEED_CONSTANT )
+					{
+						(void) PWM_prvvAdjustSPWMFrequency( BLDCM_fGetMotorActualRPMPercent() );
+					}
+					else
+					{
+						(void) PWM_prvvAdjustSPWMFrequency( BLDCM_fGetMotorDesiredRPMPercent() );
+					}
+				}
+
 				HAL_TIM_PWM_Start_DMA(PWM_prvpxConfigStruct->ppxPhaseTimerHandles[xPhase],
 									  PWM_prvpxConfigStruct->pulPhaseTimerChannels[xPhase],
 									  (uint32_t *)PWM_prvpucSPWM_LUT,
 									  mBLDCM_LUT_SIZE);
+
+				HAL_TIMEx_PWMN_Start_DMA(PWM_prvpxConfigStruct->ppxPhaseTimerHandles[xPhase],
+						  	  	  	  	 PWM_prvpxConfigStruct->pulPhaseTimerChannels[xPhase],
+										 (uint32_t *)PWM_prvpucSPWM_LUT,
+										 mBLDCM_LUT_SIZE);
 
 				break;
 

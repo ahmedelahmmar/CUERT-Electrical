@@ -71,6 +71,17 @@ PWM_ConfigTypeDef xPWMConfigStruct = {
 		.pulPhaseTimerChannels[PWM_Phase_W] = mPHASE_W_TIMER_CHANNEL,
 };
 
+HALL_ConfigTypeDef xHALLConfigStruct = {
+		.ppxSensorPorts[HALL_Sensor_U] = GPIOA,
+		.pulSensorPins[HALL_Sensor_U] = GPIO_PIN_5,
+
+		.ppxSensorPorts[HALL_Sensor_V] = GPIOA,
+		.pulSensorPins[HALL_Sensor_V] = GPIO_PIN_6,
+
+		.ppxSensorPorts[HALL_Sensor_W] = GPIOA,
+		.pulSensorPins[HALL_Sensor_W] = GPIO_PIN_7,
+};
+
 float fActualRPM;
 float fSimRPM;
 
@@ -145,7 +156,7 @@ int main(void)
    * 	- Hall sensor sector simulation.
    * 	- Hall sensor physical signal simulation
    */
-  HAL_TIM_Base_Start_IT(&htim4);
+//  HAL_TIM_Base_Start_IT(&htim4);
 
 
   /*
@@ -158,11 +169,11 @@ int main(void)
    * Start the pwm responsible for:
    * 	- Indication of current speed % with it duty cycle.
    */
-  HAL_TIM_PWM_Start_IT(&htim4, TIM_CHANNEL_1);
-
+//  HAL_TIM_PWM_Start_IT(&htim4, TIM_CHANNEL_1);
 
   (void) BLDCM_vInit();
   (void) PWM_vInit(&xPWMConfigStruct);
+
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -309,12 +320,12 @@ void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef* hadc)
 		fSimRPM = (float)((float)(mBLDCM_MAX_SPEED_RPM * ADC_pulReadingBuffer) / 4095);
 		fSimRPMPercent = (fSimRPM / mBLDCM_MAX_SPEED_RPM) * 100;
 
-		SetDutyCycle(&htim4, TIM_CHANNEL_1, (uint8_t)fSimRPMPercent);
+//		SetDutyCycle(&htim4, TIM_CHANNEL_1, (uint8_t)BLDCM_fGetMotorActualRPMPercent());
 
 		BLDCM_vUpdateMotorDesiredSpeedParameters(fSimRPM);
 
-		uint32_t ulTim4Prescaler = -14.58 * ADC_pulReadingBuffer + 60000;
-		__HAL_TIM_SET_PRESCALER(&htim4, ulTim4Prescaler);
+//		uint32_t ulTim4Prescaler = -14.58 * ADC_pulReadingBuffer + 60000;
+//		__HAL_TIM_SET_PRESCALER(&htim4, ulTim4Prescaler);
 	}
 }
 
