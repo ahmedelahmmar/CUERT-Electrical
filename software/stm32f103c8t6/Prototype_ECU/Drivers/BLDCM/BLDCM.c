@@ -156,7 +156,7 @@ BLDCM_StateTypeDef BLDCM_xStartMotor()
 			&&
 			(BLDCM_prvfMotorActualRPMPercent < mBLDCM_TRANSITION_STATE_THRESHOLD_PERCENTAGE) )
 	{
-		BLDCM_prvfPWMActualDutyCycle = BLDCM_prvfMotorActualRPMPercent; /* Should be increased gradually */
+		BLDCM_prvfPWMActualDutyCycle = BLDCM_prvfMotorActualRPMPercent + 2; /* Should be more than  gradually */
 
 		BLDCM_vCommutate(BLDCM_COMMUTATION_PWM_180);
 	}
@@ -235,11 +235,11 @@ BLDCM_SpeedChangeTypeDef BLDCM_xGetDesiredSpeedChange(void)
 
 	// Todo: add tolerance
 
-	if ( BLDCM_prvfMotorPreviousDesiredRPM < BLDCM_prvfMotorActualDesiredRPM )
+	if ( BLDCM_prvfMotorActualCurrentRPM < BLDCM_prvfMotorActualDesiredRPM )
 	{
 		xReturn = BLDCM_SPEED_INCREASING;
 	}
-	else if ( BLDCM_prvfMotorPreviousDesiredRPM == BLDCM_prvfMotorActualDesiredRPM )
+	else if ( BLDCM_prvfMotorActualCurrentRPM == BLDCM_prvfMotorActualDesiredRPM )
 	{
 		xReturn = BLDCM_SPEED_CONSTANT;
 	}

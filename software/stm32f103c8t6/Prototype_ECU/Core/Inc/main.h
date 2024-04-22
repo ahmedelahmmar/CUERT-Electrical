@@ -33,8 +33,6 @@ extern "C" {
 /* USER CODE BEGIN Includes */
 #include "../../Drivers/BLDCM/BLDCM.h"
 #include "../../Drivers/BLDCM/BLDCM_Cfg.h"
-#include "../../Drivers/BLDCM/PWM/PWM.h"
-#include "../../Drivers/BLDCM/Hall/Hall.h"
 /* USER CODE END Includes */
 
 /* Exported types ------------------------------------------------------------*/
@@ -62,8 +60,23 @@ void Error_Handler(void);
 /* Private defines -----------------------------------------------------------*/
 #define BUILTIN_LED_Pin GPIO_PIN_13
 #define BUILTIN_LED_GPIO_Port GPIOC
+#define EXTI_HALL_U_Pin GPIO_PIN_5
+#define EXTI_HALL_U_GPIO_Port GPIOA
+#define EXTI_HALL_U_EXTI_IRQn EXTI9_5_IRQn
+#define EXTI_HALL_V_Pin GPIO_PIN_6
+#define EXTI_HALL_V_GPIO_Port GPIOA
+#define EXTI_HALL_V_EXTI_IRQn EXTI9_5_IRQn
+#define EXTI_HALL_W_Pin GPIO_PIN_7
+#define EXTI_HALL_W_GPIO_Port GPIOA
+#define EXTI_HALL_W_EXTI_IRQn EXTI9_5_IRQn
 #define ADC_CURRENT_SPEED_POT_Pin GPIO_PIN_0
 #define ADC_CURRENT_SPEED_POT_GPIO_Port GPIOB
+#define PWMN_PHASE_U_Pin GPIO_PIN_13
+#define PWMN_PHASE_U_GPIO_Port GPIOB
+#define PWMN_PHASE_V_Pin GPIO_PIN_14
+#define PWMN_PHASE_V_GPIO_Port GPIOB
+#define PWMN_PHASE_W_Pin GPIO_PIN_15
+#define PWMN_PHASE_W_GPIO_Port GPIOB
 #define PWM_PHASE_U_Pin GPIO_PIN_8
 #define PWM_PHASE_U_GPIO_Port GPIOA
 #define PWM_PHASE_V_Pin GPIO_PIN_9

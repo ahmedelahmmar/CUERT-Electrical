@@ -29,23 +29,23 @@ void HALL_vInit(const HALL_ConfigTypeDef * const pxConfigStruct)
 	}
 }
 
-extern __IO union
-{
-	uint8_t Sector;
-	struct
-	{
-		uint8_t HallW 		: 1;
-		uint8_t HallV 		: 1;
-		uint8_t HallU 		: 1;
-		uint8_t Reserved 	: 5;
-	} Instance;
-
-} HallSensors;
+//extern __IO union
+//{
+//	uint8_t Sector;
+//	struct
+//	{
+//		uint8_t HallW 		: 1;
+//		uint8_t HallV 		: 1;
+//		uint8_t HallU 		: 1;
+//		uint8_t Reserved 	: 5;
+//	} Instance;
+//
+//} HallSensors;
 
 HALL_SectorTypeDef HALL_xGetSector(void)
 {
-//	return HALL_xSectorState.Sector;
-	return HallSensors.Sector;
+	return HALL_xSectorState.Sector;
+//	return HallSensors.Sector;
 }
 
 
