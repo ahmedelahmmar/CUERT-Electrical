@@ -1,5 +1,5 @@
-#ifndef _SPWM_H_
-#define _SPWM_H_
+#ifndef _PWM_H_
+#define _PWM_H_
 
 #include "../BLDCM.h"
 
@@ -26,7 +26,7 @@ typedef struct
 } PWM_ConfigTypeDef;
 
 void PWM_vInit(const PWM_ConfigTypeDef * const pxConfigStruct);
-void PWM_vStart(const PWM_ModesTypeDef xMode, const PWM_PhaseTypeDef xPhase);
-void PWM_vStop(const PWM_PhaseTypeDef xHallPhase);
+void PWM_vStart(const PWM_PhaseTypeDef xPhase);
+void PWM_vStop(const PWM_PhaseTypeDef xPhase);
 
-#endif /* _SPWM_H_ */
+#endif /* _PWM_H_ */

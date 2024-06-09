@@ -31,8 +31,19 @@ extern "C" {
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
+
 #include "../../Drivers/BLDCM/BLDCM.h"
 #include "../../Drivers/BLDCM/BLDCM_Cfg.h"
+<<<<<<< HEAD
+
+#include "../../Drivers/BLDCM/PWM/PWM.h"
+#include "../../Drivers/BLDCM/Hall/Hall.h"
+
+||||||| 61ab53e
+#include "../../Drivers/BLDCM/PWM/PWM.h"
+#include "../../Drivers/BLDCM/Hall/Hall.h"
+=======
+>>>>>>> 8d117f3c019daa2017624ee00f258bfdf0c452c4
 /* USER CODE END Includes */
 
 /* Exported types ------------------------------------------------------------*/
@@ -87,6 +98,15 @@ void Error_Handler(void);
 #define ICU_HALL_SENSOR_X_GPIO_Port GPIOA
 #define PWM_ACTUAL_CURRENT_SPEED_Pin GPIO_PIN_6
 #define PWM_ACTUAL_CURRENT_SPEED_GPIO_Port GPIOB
+#define EXTI_HALL_U_Pin GPIO_PIN_7
+#define EXTI_HALL_U_GPIO_Port GPIOB
+#define EXTI_HALL_U_EXTI_IRQn EXTI9_5_IRQn
+#define EXTI__HALL_V_Pin GPIO_PIN_8
+#define EXTI__HALL_V_GPIO_Port GPIOB
+#define EXTI__HALL_V_EXTI_IRQn EXTI9_5_IRQn
+#define EXTI_HALL_W_Pin GPIO_PIN_9
+#define EXTI_HALL_W_GPIO_Port GPIOB
+#define EXTI_HALL_W_EXTI_IRQn EXTI9_5_IRQn
 
 /* USER CODE BEGIN Private defines */
 

@@ -2,6 +2,7 @@
 #define _BLDCM_H_
 
 #include "stm32f1xx_hal.h"
+
 #include "Hall/Hall.h"
 #include "PWM/PWM.h"
 
@@ -69,7 +70,7 @@ void 						BLDCM_vSetState(BLDCM_StateTypeDef xState);
 //void 						BLDCM_vSetTransitionState(BLDCM_StateTypeDef xState);
 void 						BLDCM_vUpdateMotorDesiredSpeedParameters(float fDesiredRPM);
 void 						BLDCM_vUpdateMotorActualSpeedParameters(uint32_t ulTotalNumberOfTicks);
-void 						BLDCM_vCommutate(BLDCM_CommutationTypeDef xCommutationLogic);
+void 						BLDCM_vCommutate(void);
 
 float 						BLDCM_fGetMotorActualRPM(void);
 float						BLDCM_fGetMotorActualRPMPercent(void);

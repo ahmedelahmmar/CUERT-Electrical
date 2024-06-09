@@ -6,9 +6,15 @@
 /* Configurable Macros ****************/
 /**************************************/
 
+
+#define mBLDCM_SIMULATE									0
+#define mBLDCM_RUN										1
+
+#define mBLDCM_OPERTATION								mBLDCM_RUN
+
 #define mBLDCM_LUT_SIZE									64
 
-#define mBLDCM_POLES									24
+#define mBLDCM_POLES									46
 
 #define mBLDCM_MAX_SPEED_KMPH							50
 
@@ -18,6 +24,8 @@
 
 #define mBLDCM_TRANSITION_STATE_THRESHOLD_PERCENTAGE	25
 
+#define mBLDCM_PWM_DUTYCYLE_OFFSET						2
+
 /**************************************/
 /* Calculated Macros  [DO NOT MODIFY] */
 /**************************************/
@@ -25,7 +33,7 @@
 #define mBLDCM_RADIUS_INCH					(mBLDCM_DIAMETER_INCH / 2)
 #define mBLDCM_RADIUS_METER					(mBLDCM_RADIUS_INCH * 0.0254)
 //#define mBLDCM_MAX_SPEED_RPM				(uint32_t)((25 / (float)(3 * 3.14 * mBLDCM_RADIUS_METER)) * mBLDCM_MAX_SPEED_KMPH)
-#define mBLDCM_MAX_SPEED_RPM				260
+#define mBLDCM_MAX_SPEED_RPM				300
 #define mBLDCM_POLE_PAIRS					(mBLDCM_POLES / 2)
 
 #endif /* _BLDCM_CFG_H_ */

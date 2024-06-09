@@ -19,7 +19,6 @@
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
 #include "adc.h"
-#include "dma.h"
 #include "tim.h"
 #include "gpio.h"
 
@@ -71,6 +70,20 @@ PWM_ConfigTypeDef xPWMConfigStruct = {
 		.pulPhaseTimerChannels[PWM_Phase_W] = mPHASE_W_TIMER_CHANNEL,
 };
 
+<<<<<<< HEAD
+HALL_ConfigTypeDef xHALLConfigStruct = {
+		.ppxSensorPorts[HALL_Sensor_U] = GPIOB,
+		.pulSensorPins[HALL_Sensor_U] = GPIO_PIN_7,
+
+		.ppxSensorPorts[HALL_Sensor_V] = GPIOB,
+		.pulSensorPins[HALL_Sensor_V] = GPIO_PIN_8,
+
+		.ppxSensorPorts[HALL_Sensor_W] = GPIOB,
+		.pulSensorPins[HALL_Sensor_W] = GPIO_PIN_9,
+};
+
+||||||| 61ab53e
+=======
 HALL_ConfigTypeDef xHALLConfigStruct = {
 		.ppxSensorPorts[HALL_Sensor_U] = GPIOA,
 		.pulSensorPins[HALL_Sensor_U] = GPIO_PIN_5,
@@ -82,6 +95,7 @@ HALL_ConfigTypeDef xHALLConfigStruct = {
 		.pulSensorPins[HALL_Sensor_W] = GPIO_PIN_7,
 };
 
+>>>>>>> 8d117f3c019daa2017624ee00f258bfdf0c452c4
 float fActualRPM;
 float fSimRPM;
 
@@ -136,7 +150,6 @@ int main(void)
 
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
-  MX_DMA_Init();
   MX_TIM1_Init();
   MX_TIM4_Init();
   MX_ADC1_Init();
@@ -151,26 +164,48 @@ int main(void)
   HAL_TIM_IC_Start_IT(&htim2, TIM_CHANNEL_1);
 
 
+#if ( mBLDCM_OPERTATION == mBLDCM_SIMULATE )
   /*
    * Start the timer responsible for:
    * 	- Hall sensor sector simulation.
    * 	- Hall sensor physical signal simulation
    */
+<<<<<<< HEAD
+  HAL_TIM_Base_Start_IT(&htim4);
+#endif
+||||||| 61ab53e
+  HAL_TIM_Base_Start_IT(&htim4);
+
+=======
 //  HAL_TIM_Base_Start_IT(&htim4);
 
+>>>>>>> 8d117f3c019daa2017624ee00f258bfdf0c452c4
 
   /*
    * Start the adc conversion resposible for:
-   * 	- Simulating the current motor speed.
+   * 	- Reading the motor throttle.
    */
-  HAL_ADC_Start_IT(&hadc1);
+//  HAL_ADC_Start_IT(&hadc1);
 
+
+#if ( mBLDCM_OPERTATION == mBLDCM_SIMULATE )
   /*
    * Start the pwm responsible for:
    * 	- Indication of current speed % with it duty cycle.
    */
+<<<<<<< HEAD
+  HAL_TIM_PWM_Start_IT(&htim4, TIM_CHANNEL_1);
+#endif
+
+  (void) HALL_vInit(&xHALLConfigStruct);
+||||||| 61ab53e
+  HAL_TIM_PWM_Start_IT(&htim4, TIM_CHANNEL_1);
+
+
+=======
 //  HAL_TIM_PWM_Start_IT(&htim4, TIM_CHANNEL_1);
 
+>>>>>>> 8d117f3c019daa2017624ee00f258bfdf0c452c4
   (void) BLDCM_vInit();
   (void) PWM_vInit(&xPWMConfigStruct);
 
@@ -190,15 +225,18 @@ int main(void)
 
 	  xMotorCurrentState = BLDCM_xGetState();
 
+	  uint8_t RPMPercent = (uint8_t)BLDCM_fGetMotorDesiredRPMPercent();
+
 	  switch ( xMotorCurrentState )
 	  {
 		  case BLDCM_IDLE:
 
-			  (void) PWM_vStop(PWM_Phase_U);
-			  (void) PWM_vStop(PWM_Phase_V);
-			  (void) PWM_vStop(PWM_Phase_W);
+			  BLDCM_vCommutate();
+//			  (void) PWM_vStop(PWM_Phase_U);
+//			  (void) PWM_vStop(PWM_Phase_V);
+//			  (void) PWM_vStop(PWM_Phase_W);
 
-			  if ( mBLDCM_IDLE_STATE_THRESHOLD_PERCENTAGE < BLDCM_fGetMotorActualRPMPercent() )
+			  if ( mBLDCM_IDLE_STATE_THRESHOLD_PERCENTAGE < RPMPercent )
 			  {
 				  (void) BLDCM_vSetState(BLDCM_STARTING);
 			  }
@@ -220,7 +258,7 @@ int main(void)
 
 		  case BLDCM_RUNNING:
 
-			  BLDCM_vCommutate(BLDCM_COMMUTATION_SPWM_180);
+			  BLDCM_vCommutate();
 
 			  if ( (uint8_t)BLDCM_fGetMotorActualRPMPercent() <  mBLDCM_TRANSITION_STATE_THRESHOLD_PERCENTAGE )
 			  {
@@ -317,15 +355,33 @@ void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef* hadc)
 		ADC_pulReadingBuffer = ADC_pulReadingBuffer >> 5;
 		ADC_pucReadingCounter = 0;
 
+		ADC_pulReadingBuffer = 1.852 * ADC_pulReadingBuffer - 1897;
+
 		fSimRPM = (float)((float)(mBLDCM_MAX_SPEED_RPM * ADC_pulReadingBuffer) / 4095);
 		fSimRPMPercent = (fSimRPM / mBLDCM_MAX_SPEED_RPM) * 100;
 
+<<<<<<< HEAD
+#if ( mBLDCM_OPERTATION == mBLDCM_SIMULATE )
+		SetDutyCycle(&htim4, TIM_CHANNEL_1, (uint8_t)BLDCM_fGetMotorDesiredRPMPercent());
+||||||| 61ab53e
+		SetDutyCycle(&htim4, TIM_CHANNEL_1, (uint8_t)fSimRPMPercent);
+=======
 //		SetDutyCycle(&htim4, TIM_CHANNEL_1, (uint8_t)BLDCM_fGetMotorActualRPMPercent());
+>>>>>>> 8d117f3c019daa2017624ee00f258bfdf0c452c4
 
+//		uint32_t ulTim4Prescaler = -13.89 * ADC_pulReadingBuffer + 60000;
+//		__HAL_TIM_SET_PRESCALER(&htim4, ulTim4Prescaler);
+#endif
 		BLDCM_vUpdateMotorDesiredSpeedParameters(fSimRPM);
 
+<<<<<<< HEAD
+||||||| 61ab53e
+		uint32_t ulTim4Prescaler = -14.58 * ADC_pulReadingBuffer + 60000;
+		__HAL_TIM_SET_PRESCALER(&htim4, ulTim4Prescaler);
+=======
 //		uint32_t ulTim4Prescaler = -14.58 * ADC_pulReadingBuffer + 60000;
 //		__HAL_TIM_SET_PRESCALER(&htim4, ulTim4Prescaler);
+>>>>>>> 8d117f3c019daa2017624ee00f258bfdf0c452c4
 	}
 }
 

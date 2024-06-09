@@ -73,33 +73,81 @@ void BLDCM_vUpdateMotorActualSpeedParameters(uint32_t ulTotalNumberOfTicks)
 
 
 
-void BLDCM_vCommutate(BLDCM_CommutationTypeDef xCommutationLogic)
+void BLDCM_vCommutate(void)
 {
-	if ( (xCommutationLogic < BLDCM_COMMUTATION_LIMIT) )
+	switch ( HALL_xGetSector() )
 	{
-		switch (xCommutationLogic)
-		{
-			case BLDCM_COMMUTATION_PWM_180:
+		case HALL_SECTOR_1:
 
-				if ( HALL_SECTOR_1 == HALL_xGetSector() )
-				{
-					PWM_vStart(PWM, PWM_Phase_U);
-				}
+			PWM_vStart(PWM_Phase_U);
+			PWM_vStop(PWM_Phase_V);
+			PWM_vStart(PWM_Phase_W);
+			break;
 
-				break;
+		case HALL_SECTOR_2:
 
-			case BLDCM_COMMUTATION_SPWM_180:
+			PWM_vStart(PWM_Phase_U);
+			PWM_vStop(PWM_Phase_V);
+			PWM_vStop(PWM_Phase_W);
+			break;
 
-				if ( HALL_SECTOR_1 == HALL_xGetSector() )
-				{
-					PWM_vStart(SPWM, PWM_Phase_U);
-				}
+		case HALL_SECTOR_3:
 
-				break;
+			PWM_vStart(PWM_Phase_U);
+			PWM_vStart(PWM_Phase_V);
+			PWM_vStop(PWM_Phase_W);
+			break;
 
-			default: break;
-		}
+		case HALL_SECTOR_4:
 
+			PWM_vStop(PWM_Phase_U);
+			PWM_vStart(PWM_Phase_V);
+			PWM_vStop(PWM_Phase_W);
+			break;
+
+		case HALL_SECTOR_5:
+
+			PWM_vStop(PWM_Phase_U);
+			PWM_vStart(PWM_Phase_V);
+			PWM_vStart(PWM_Phase_W);
+			break;
+
+		case HALL_SECTOR_6:
+
+			PWM_vStop(PWM_Phase_U);
+			PWM_vStop(PWM_Phase_V);
+			PWM_vStart(PWM_Phase_W);
+			break;
+
+//	case HALL_SECTOR_1:
+//
+//		PWM_vStart(PWM_Phase_U);
+//		PWM_vStop(PWM_Phase_V);
+//		PWM_vStop(PWM_Phase_W);
+//		break;
+//
+//	case HALL_SECTOR_2:
+//
+//		PWM_vStart(PWM_Phase_U);
+//		PWM_vStart(PWM_Phase_V);
+//		PWM_vStop(PWM_Phase_W);
+//		break;
+//
+//	case HALL_SECTOR_3:
+//
+//		PWM_vStop(PWM_Phase_U);
+//		PWM_vStart(PWM_Phase_V);
+//		PWM_vStart(PWM_Phase_W);
+//		break;
+//
+//	case HALL_SECTOR_4:
+//
+//		PWM_vStop(PWM_Phase_U);
+//		PWM_vStop(PWM_Phase_V);
+//		PWM_vStart(PWM_Phase_W);
+//		break;
+//
+//		default: break;
 	}
 }
 
@@ -152,16 +200,37 @@ BLDCM_StateTypeDef BLDCM_xStartMotor()
 {
 	BLDCM_StateTypeDef xReturn;
 
-	while ( (mBLDCM_IDLE_STATE_THRESHOLD_PERCENTAGE < BLDCM_prvfMotorActualRPMPercent)
+//#if (mBLDCM_OPERTATION == mBLDCM_SIMULATE )
+	uint8_t ucRPMPercent = BLDCM_fGetMotorDesiredRPMPercent();
+//#else
+//	uint8_t ucRPMPercent = BLDCM_fGetMotorActualRPMPercent();
+//#endif
+
+	while ( (mBLDCM_IDLE_STATE_THRESHOLD_PERCENTAGE < ucRPMPercent)
 			&&
+<<<<<<< HEAD
+			(ucRPMPercent < mBLDCM_TRANSITION_STATE_THRESHOLD_PERCENTAGE) )
+		{
+||||||| 61ab53e
+			(BLDCM_prvfMotorActualRPMPercent < mBLDCM_TRANSITION_STATE_THRESHOLD_PERCENTAGE) )
+	{
+		BLDCM_prvfPWMActualDutyCycle = BLDCM_prvfMotorActualRPMPercent; /* Should be increased gradually */
+=======
 			(BLDCM_prvfMotorActualRPMPercent < mBLDCM_TRANSITION_STATE_THRESHOLD_PERCENTAGE) )
 	{
 		BLDCM_prvfPWMActualDutyCycle = BLDCM_prvfMotorActualRPMPercent + 2; /* Should be more than  gradually */
+>>>>>>> 8d117f3c019daa2017624ee00f258bfdf0c452c4
 
-		BLDCM_vCommutate(BLDCM_COMMUTATION_PWM_180);
-	}
+			BLDCM_vCommutate();
 
-	if ( mBLDCM_TRANSITION_STATE_THRESHOLD_PERCENTAGE < BLDCM_prvfMotorActualRPMPercent )
+//#if (mBLDCM_OPERTATION == mBLDCM_SIMULATE )
+	ucRPMPercent = BLDCM_fGetMotorDesiredRPMPercent();
+//#else
+//	ucRPMPercent = BLDCM_fGetMotorActualRPMPercent();
+//#endif
+		}
+
+	if ( mBLDCM_TRANSITION_STATE_THRESHOLD_PERCENTAGE < ucRPMPercent)
 	{
 		xReturn = BLDCM_STARTING_SUCCEEDED;
 	}
@@ -179,20 +248,34 @@ BLDCM_StateTypeDef BLDCM_xStopMotor()
 {
 	BLDCM_StateTypeDef xReturn;
 
-	while ( (mBLDCM_IDLE_STATE_THRESHOLD_PERCENTAGE < BLDCM_prvfMotorActualRPMPercent)
+#if (mBLDCM_OPERTATION == mBLDCM_SIMULATE )
+	uint8_t ucRPMPercent = BLDCM_fGetMotorDesiredRPMPercent();
+#else
+	uint8_t ucRPMPercent = BLDCM_fGetMotorActualRPMPercent();
+#endif
+
+	while ( (mBLDCM_IDLE_STATE_THRESHOLD_PERCENTAGE < ucRPMPercent)
 			&&
-			(BLDCM_prvfMotorActualRPMPercent < mBLDCM_TRANSITION_STATE_THRESHOLD_PERCENTAGE) )
+			(ucRPMPercent < mBLDCM_TRANSITION_STATE_THRESHOLD_PERCENTAGE) )
 	{
-		/* if the acutal speed is still greater than 20% then decrease SPWM frequency gradually while using SPWM
-		 * else switch to PWM and decrease PWM duty cycle gradually starting from 20% duty cycle */
 
-		BLDCM_prvfPWMActualDutyCycle = BLDCM_prvfMotorActualRPMPercent; /* Should be decreased gradually */
+		BLDCM_vCommutate();
 
-		/* Should check our speed and according to it decide whether we will use pwm or spwm */
-		BLDCM_vCommutate(BLDCM_COMMUTATION_PWM_180);
+//		/* if the acutal speed is still greater than 20% then decrease SPWM frequency gradually while using SPWM
+//		 * else switch to PWM and decrease PWM duty cycle gradually starting from 20% duty cycle */
+//
+//		BLDCM_prvfPWMActualDutyCycle = BLDCM_prvfMotorActualRPMPercent; /* Should be decreased gradually */
+//
+//		/* Should check our speed and according to it decide whether we will use pwm or spwm */
+//		BLDCM_vCommutate();
+#if (mBLDCM_OPERTATION == mBLDCM_SIMULATE )
+	ucRPMPercent = BLDCM_fGetMotorDesiredRPMPercent();
+#else
+	ucRPMPercent = BLDCM_fGetMotorActualRPMPercent();
+#endif
 	}
 
-	if (BLDCM_prvfMotorDesiredRPMPercent < mBLDCM_TRANSITION_STATE_THRESHOLD_PERCENTAGE)
+	if (ucRPMPercent < mBLDCM_TRANSITION_STATE_THRESHOLD_PERCENTAGE)
 	{
 		xReturn = BLDCM_STOPPING_SUCCEEDED;
 	}
